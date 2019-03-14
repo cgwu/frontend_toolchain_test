@@ -1,0 +1,118 @@
+var socketio = require('socket.io');
+var io;
+var guestNumber = 1;    // 新用户序号,用于'Guest'后缀.
+var nickNames = {};     // { socket.id => name, ... }
+var namesUsed = [];     // 已使用的名字
+var currentRoom = {};   // { socket.id => room, ... }
+
+exports.listen = function(server) {
+    io = socketio.listen(server);
+    io.set('log level', 1);
+    io.sockets.on('connection', function(socket) {
+        guestNumber = assignGuestName(socket, guestNumber, nickNames, namesUsed);
+        joinRoom(socket, "Lobby");
+        handleMessageBroadcasting(socket, nickNames);
+        handleNameChangeAttempts(socket, nickNames, namesUsed);
+        handleRoomJoining(socket);
+        socket.on('rooms', function(){
+            socket.emit('rooms', io.sockets.manager.rooms);
+        });
+        handleClientDisconnection(socket, nickNames, namesUsed);
+    });
+};
+//分配名字
+function assignGuestName(socket, guestNumber, nickNames, namesUsed) {
+    var name = 'Guest' + guestNumber;
+    nickNames[socket.id] = name;
+    console.log('新用户加入,id:', socket.id, ',name:', name);
+    socket.emit('nameResult', {
+        success: true,
+        name: name
+    });
+    namesUsed.push(name);
+    return guestNumber + 1;
+}
+//加入房间
+function joinRoom(socket, room) {
+    socket.join(room);
+    currentRoom[socket.id] = room;
+    socket.emit('joinResult', {room: room});
+    socket.broadcast.to(room).emit('message', {
+        text: nickNames[socket.id] + ' has joined ' + room + '.'
+    });
+    // TODO: usersInRoom
+    var usersInRoom = io.sockets.clients(room);
+    if(usersInRoom.length > 1) {
+        var usersInRoomSummary = 'Users currently in ' + room + ': ';
+        for (var index in usersInRoom) {
+            var userSocketId = usersInRoom[index].id;
+            if(userSocketId != socket.id) {
+                if(index > 0) {
+                    usersInRoomSummary += ',  ';
+                }
+                usersInRoomSummary += nickNames[userSocketId];
+            }
+        }
+        usersInRoomSummary += '.';
+        socket.emit('message', {text: usersInRoomSummary});
+    }
+}
+//更改名字
+function handleNameChangeAttempts(socket, nickNames, namesUsed) {
+    socket.on("nameAttempt", function(name){
+        
+        if(name.indexOf('Guest') == 0) {
+            socket.emit('nameResult', {
+                success: false,
+                message: 'Names cannot begin with "Guest"'
+            });
+        }  else {
+            if (namesUsed.indexOf(name) == -1) {
+                var previousName = nickNames[socket.id];
+                var previousNameIndex = namesUsed.indexOf(previousName);
+                console.log('尝试更改名字:', previousName , ' => ', name);
+                namesUsed.push(name);
+                nickNames[socket.id] = name;
+                // console.log('新名字', nickNames[socket.id]);
+                delete namesUsed[previousNameIndex];
+                socket.emit('nameResult', {
+                    success: true,
+                    name: name
+                });
+                socket.broadcast.to(currentRoom[socket.id]).emit('message',{
+                    text: previousName + ' is now known as '+ name + '.'
+                });
+            }  else {
+                socket.emit('nameResult', {
+                    success: false,
+                    mesasge: 'That name is already in use.'
+                });
+            }
+        }
+
+    });
+}
+
+function handleMessageBroadcasting(socket) {
+    socket.on('message', function(message){
+        console.log('广播消息:', nickNames[socket.id] + ": " + message.text);
+        socket.broadcast.to(message.room).emit('message', {
+            text: nickNames[socket.id] + ": " + message.text
+        });
+    });
+}
+
+function handleRoomJoining(socket) {
+    socket.on('join', function(room){
+        socket.leave(currentRoom[socket.id]);
+        joinRoom(socket, room.newRoom);
+    });
+}
+
+function handleClientDisconnection(socket) {
+    socket.on('disconnect', function(){
+        var nameIndex = namesUsed.indexOf(nickNames[socket.id]);
+        delete namesUsed[nameIndex];
+        delete nickNames[socket.id];
+    })
+}
