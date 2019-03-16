@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./lib/angular.js"></script>
+</head>
+<body>
+    <div ng-app="fooApp">
+        <input type="text" ng-model="name" >
+        <h1>Hello: {{name}}</h1>
+        <hr>
+        <input type="text" ng-model="person.name" >
+        <h1>Hello person: {{person.name}}</h1>
+        <hr>
+
+        <div ng-controller="MyController">
+            <h1>Hello {{ clock }}</h1>
+        </div>
+
+        <hr>
+        <input type="text" ng-model="name2" >
+        <h1>Hello: {{name2}}</h1>
+
+        <div ng-controller="MyController2">
+            <h1>Hello {{ clock2.now }}</h1>
+        </div>
+        <hr>
+
+        <div ng-controller="FirstController">
+            <h4>The simplest adding machine ever</h4>
+            <button ng-click="add(1)" class="button">Add</button>
+            <a ng-click="subtract(1)" class="button alert" href='javascript:'>Subtract</a>
+            <h4>Current count: {{ counter }}</h4>
+            </div>
+        <hr>
+
+        <div ng-controller="ParentController">
+            <div ng-controller="ChildController">
+            <a ng-click="sayHello()" href='javascript:'>Say hello</a>
+            </div>
+            {{ person }}
+        </div>
+
+    </div>
+    <script type="text/javascript">
+    var app = angular.module("fooApp",[]);
+    app.controller(
+        'MyController',
+        function ($scope, $timeout) {
+            var updateClock = function(){
+                $scope.clock = new Date();
+                $timeout(function(){
+                    updateClock();
+                }, 1000);
+            };
+            updateClock();
+        }
+    )
+    .controller(
+        'MyController2',
+        function ($scope, $timeout, $rootScope) {
+            $scope.clock2 = {
+                now: new Date()
+            };
+            var updateClock = function(){
+                $scope.clock2.now = new Date() + $rootScope.name2;
+            };
+            setInterval(function(){
+                $scope.$apply(updateClock);
+            }, 1000);
+            updateClock();
+        }
+    )
+    .run(function($rootScope){
+        $rootScope.name2 = '根名字2';
+    });
+
+    app.controller('FirstController', function($scope){
+        $scope.counter = 0;
+        $scope.add = function(amount){
+            $scope.counter +=  amount;
+        }
+        $scope.subtract = function(amount){
+            $scope.counter -=  amount;
+        }
+    });
+
+    //父子控制器
+    app.controller('ParentController', function($scope){
+        $scope.person = {greeted: false};
+    });
+    app.controller('ChildController', function($scope){
+        $scope.sayHello = function(){
+            $scope.person.name = 'Ari Lerner';
+        }
+    });
+
+    </script>
+
+    
+</body>
+</html>

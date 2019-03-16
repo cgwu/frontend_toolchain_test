@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./lib/angular.js"></script>
+</head>
+<body ng-app="myApp">
+    <h3>手动运行模板编译</h3>
+    <div ng-controller="MyController">
+        <input ng-model="to" type="email" placeholder="Recipient">
+        <br>
+        <textarea ng-model="emailBody" cols="60" rows="10"></textarea>
+        <pre>{{ previewText }}</pre>
+        <hr>
+        <h3>过滤器filter</h3>
+        <pre>{{ previewText | uppercase }}</pre>
+        <hr>
+        <pre>{{ previewTextLower  }}</pre>
+        <hr>
+        {{ 123.456 | currency }}
+        <hr>
+        {{ now | date:'medium'}}  <br>
+        {{ now | date:'yyyy-MM-dd HH:mm:ss.sssZ'}} <br>
+        {{ ['Ari','Lerner','Likes','To','Eat','Pizza'] | filter:'e' }} <br>
+        <pre>
+{{ {'name': 'Ari', 'City': 'SanFrancisco'} | json }}
+       
+我们可以截取字符串的前三个字符：
+{{ 'San Francisco is very cloudy' | limitTo:3 }}
+<!-- San -->
+或最后的六个字符：
+{{ 'San Francisco is very cloudy' | limitTo:-6 }}
+<!-- cloudy -->
+对数组也可以进行同样的操作。返回数组的第一个元素：
+{{ ['a','b','c','d','e','f'] | limitTo:1 }}
+
+lowercase过滤器将字符串转为小写。
+{{ "San Francisco is very cloudy" | lowercase }}
+
+{{ 1.234567 | number:2 }}
+
+{{ [{
+    'name': 'Ari',
+    'status': 'awake'
+    },{
+    'name': 'Q',
+    'status': 'sleeping'
+    },{
+    'name': 'Nate',
+    'status': 'awake'
+    }] | orderBy:'name' }}
+
+    {{ 'HELLO world 中国' | lowercase | capitalize }}
+</pre>
+    </div>
+    <script>
+   
+    var app = angular.module('myApp', []);
+    app.controller('MyController', function($scope, $interpolate, $filter){
+        $scope.now = new Date();
+        // 设置监听
+        $scope.$watch('emailBody', function(body) {
+            if(body) {
+                // $interpolate服务返回一个函数，用来在特定的上下文中运算表达式
+                var template = $interpolate(body);
+                $scope.previewText = template({ to: $scope.to });
+                $scope.previewTextLower = $filter('lowercase')($scope.previewText);
+            }
+        });
+    });
+
+    app.filter('capitalize', function(){
+        return function(input){
+            if(input) 
+                return input[0].toUpperCase() + input.slice(1);
+        };
+    });
+    </script>
+</body>
+</html>
