@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./lib/angular.js"></script>
+    <script src="./lib/angular-ui-router.min.js"></script>
+</head>
+<body ng-app="myApp">
+    <div ng-controller='MainCtrl'>
+    <ul>
+        <li><a ui-sref="index">首页</a></li>
+        <li><a ui-sref="products">产品列表</a></li>
+        <li><a ui-sref="contact">联系我们</a></li>
+        <li><a ui-sref="state1">state1</a></li>
+        <li><a ui-sref="state2">state2</a></li>
+    </ul>
+    </div>
+    <head>HEAD</head>
+    <div ui-view></div>
+    <footer>FOOTER</footer>
+    <script>
+        // angular.element(document.getElementsByTagName('head')).append(angular.element('<base href="' + window.location.pathname + '" />'));
+
+        var app = angular.module('myApp', ['ui.router']);
+        app.config(function($stateProvider, $urlRouterProvider) {
+            // For any unmatched url, redirect to /state1
+            // $urlRouterProvider.otherwise("/index");
+            $stateProvider
+                .state('index', { url:'/', template: '这里是首页'})
+                .state('products', { url:'/products', template: '这里是产品列表'})
+                .state('contact', { url:'contact', template: '这里是联系方式'})
+                .state('state1', {
+                    url: "/state1",
+                    templateUrl: "partials/state1.html"
+                    })
+                .state('state1.list', {
+                    url: "/list",
+                    templateUrl: "partials/state1.list.html",
+                    controller: function($scope) {
+                        $scope.items = ["A", "List", "Of", "Items"];
+                    }
+                    })
+                .state('state2', {
+                    url: "/state2",
+                    templateUrl: "partials/state2.html"
+                    })
+                .state('state2.list', {
+                    url: "/list",
+                    templateUrl: "partials/state2.list.html",
+                    controller: function($scope) {
+                        $scope.things = ["A", "Set", "Of", "Things"];
+                    }
+                });
+            
+        })
+        .controller('MainCtrl', function($scope){
+
+        });
+        app.run(function($state){
+            $state.go('index');
+        })
+    </script>
+</body>
+</html>

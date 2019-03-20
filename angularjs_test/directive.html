@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+    .odd {
+        background-color: blue;
+    }
+    .even {
+        background-color: red;
+    }
+    </style>
+    <script src="./lib/angular.js"></script>
+    <script>
+    var app = angular.module('myApp',[]);
+    app.directive('myDirective', function(){
+        return {
+            restrict: 'EAC', //元素（E）、属性（A）、类（C）或注释（M）的格式调用指令
+            replace: true,
+            template: '<a href="http://www.baidu.com/">点击转到Baidu</a>'
+        };
+    });
+    app.directive('myDirectiveFoo', function() {
+        return {
+            restrict: 'EAC', //元素（E）、属性（A）、类（C）或注释（M）的格式调用指令
+            replace: true,
+            scope: {
+                myUrl:      '@', //绑定策略
+                myLinkText: '@'
+            },
+            template: '<a href="{{ myUrl}}"> {{ myLinkText}} </a>'
+        };
+    });
+    app.run(function($rootScope, $timeout) {
+        $rootScope.rootProperty='root scope';
+        $rootScope.isDisabled = true;
+        $timeout(function(){
+            $rootScope.isDisabled = false;
+        }, 5000);
+    })
+    .controller('ParentController', function($scope){
+        $scope.parentProperty = 'parent scope';
+    })
+    .controller('ChildController', function($scope){
+        $scope.childProperty = 'child scope';
+        $scope.fullSentenceFromChild = 'Same $scope: We can access: ' +
+        $scope.rootProperty + ' and ' +
+        $scope.parentProperty + ' and ' +
+        $scope.childProperty;
+    });
+
+    app.controller('PeopleController', function($scope){
+        $scope.people = [
+            {name: "Ari", city: "San Francisco"},
+            {name: "Erik", city: "Seattle"},
+            
+            {name: "Ari", city: "San Francisco"},
+            {name: "Erik", city: "Seattle"},
+            
+            {name: "Ari", city: "San Francisco"},
+            {name: "Erik", city: "Seattle"}
+        ];
+    });
+
+    app.controller('EquationController', function($scope){
+        $scope.equation = {};
+        $scope.change = function(){
+            $scope.equation.output = 
+                parseInt($scope.equation.x) + 2;
+        }
+    });
+    </script>
+</head>
+<body ng-app="myApp">
+    <my-directive></my-directive>
+    <div my-directive></div>
+    <div class='my-directive'></div>
+    <!--directive:my-directive-->
+
+    <hr>
+    <my-directive-foo my-url="http://www.qq.com"  my-link-text="QQ企鹅"></my-directive-foo>
+    <br>
+    <my-directive-foo my-url="http://www.163.com" my-link-text="{{'网'+'易'}}"></my-directive-foo>
+    <hr>
+
+    <h1 ng-init="greeting='Hello中国'">
+        The greeting is: {{greeting}}
+    </h1>
+    <hr>
+
+    <input type="text" ng-model='rootProperty'>
+    <p>We can access: {{ rootProperty }}</p>
+    <div ng-controller="ParentController">
+        <p>We can access: {{ rootProperty }}
+            and {{ parentProperty }}
+        </p>
+
+        <div ng-controller="ChildController">
+            <p>
+                We can access: {{ rootProperty }}
+                and {{ parentProperty }}
+                and {{ ChildPProperty }}.
+            </p>
+            <p>{{ fullSentenceFromChild }}</p>
+        </div>
+    </div>
+    <hr>
+    <input type="text" ng-readonly="true">
+    <select ng-disabled="isDisabled" >
+        <option value="">x</option>
+    </select>
+    <hr>
+
+    <!-- <div ng-include="'inc.html'"></div> -->
+
+    <div ng-if="2+2===5">
+            Won't see this DOM node, not even in the source code
+    </div>
+    <div ng-if="2+2===4">
+        Hi, I do exist
+    </div>
+
+    <hr>
+    <ul ng-controller="PeopleController">
+        <li ng-repeat="person in people" ng-class="{even: !$even, odd: !$odd}">
+            {{ person.name }} lives in {{ person.city }}
+        </li>
+    </ul>
+
+    <hr>
+    <div ng-controller=EquationController>
+        <input type="text" ng-model="equation.x"
+            ng-change="change()">
+        <code>{{ equation.output }}</code>
+    </div>
+    
+</body>
+</html>
