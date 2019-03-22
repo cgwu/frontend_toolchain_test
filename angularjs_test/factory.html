@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./lib/angular.js"></script>
+    <script>
+    angular.module('myApp',[])
+    .factory('greeter', function($http) {    // greeter服务
+        return {
+            greet: function(msg) { 
+                // alert(msg); 
+                $http.get('api/users.json')
+                .then(function(rsp){
+                    console.log(rsp.data);
+                })
+            }
+        }
+    })
+    // .controller('MyController', function($scope, greeter) {
+    //     $scope.sayHello = function() {
+    //         greeter.greet('Hello你好');
+    //     }
+    // });
+    /* 行内注入声明 */
+    .controller('MyController', ['$scope', 'greeter', function($scope, greeter) {
+        $scope.sayHello = function() {
+            greeter.greet('Hello你好');
+        }
+    }]);
+    </script>
+</head>
+<body>
+    <div ng-app="myApp">
+        <div ng-controller="MyController">
+            <button ng-click="sayHello()">Hello</button>
+        </div>
+    </div>
+</body>
+</html>

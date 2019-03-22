@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./lib/angular.js"></script>
+</head>
+<body ng-app="myApp">
+    <div ng-controller="MyCtrl"> {{ message }}</div>
+    <script>
+        angular.module('myApp',[])
+        .controller('MyCtrl', function($scope,$timeout){
+            // $scope.message = 'abc';
+            // setTimeout(function(){
+            //     $scope.$apply(function(){
+            //         $scope.message = '新的内容';
+            //     });
+            // }, 2000);
+
+            /*NOTE：我们不应该这样做，而是用angular JS提供的timeout方法，这样它就会被自动用apply方法包起来了。*/
+            $timeout(function(){
+                $scope.message = '新的内容';
+            },2000);
+        });
+    </script>
+</body>
+</html>
